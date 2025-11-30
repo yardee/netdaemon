@@ -62,6 +62,39 @@ internal static class EntitiesGenerator
 
         entityClass = entityClass.AddMembers(EnumerateAllGenerator.GenerateEnumerateMethods(entitySets[0].Domain, entitySets[0].EntityClassName));
 
+
+        if (entitySets[0].Domain == "sensor")
+        {
+            entityClass = entityClass.AddMembers(SyntaxFactory.ParseMemberDeclaration($$"""
+                                                                                            /// <summary>Enumerates all generated sensor entities as NumericSensorEntity</summary>
+                                                                                            public IEnumerable<NumericSensorEntity> EnumerateAllNumericGenerated()
+                                                                                            {
+                                                                                                  {{ string.Join(Environment.NewLine, entitySets.Single(e => e.IsNumeric).Entities.Select(e => $"yield return {e.cSharpName};")) }}
+                                                                                                  yield break;
+                                                                                            }
+
+                                                                                            /// <summary>Enumerates all generated sensor entities as SensorEntity</summary>
+                                                                                            public IEnumerable<SensorEntity> EnumerateAllNonNumericGenerated()
+                                                                                            {
+                                                                                                  {{ string.Join(Environment.NewLine, entitySets.Single(e => !e.IsNumeric).Entities.Select(e => $"yield return {e.cSharpName};")) }}
+                                                                                                  yield break;
+                                                                                            }
+                                                                                        """)!);
+        }
+        else
+        {
+            entityClass = entityClass.AddMembers(SyntaxFactory.ParseMemberDeclaration($$"""
+                                                                                            /// <summary>Enumerates all generated {{entitySets[0].Domain}} entities as {{entitySets[0].EntityClassName}}</summary>
+                                                                                            public IEnumerable<{{entitySets[0].EntityClassName}}> EnumerateAllGenerated()
+                                                                                            {
+                                                                                                  {{ string.Join(Environment.NewLine, entitySets.SelectMany(s => s.Entities).Select(e => $"yield return {e.cSharpName};")) }}
+                                                                                                  yield break;
+                                                                                            }
+                                                                                        """)!);
+        }
+
+
+
         var entityProperty = entitySets.SelectMany(s=>s.Entities.Select(e => GenerateEntityProperty(e, s.EntityClassName))).ToArray();
 
         return entityClass.AddMembers(entityProperty);

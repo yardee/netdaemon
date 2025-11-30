@@ -56,6 +56,7 @@ public static class HostBuilderExtensions
         return hostBuilder.ConfigureHostConfiguration(config =>
         {
             config.AddJsonFile("appsettings.json", optional: true);
+            config.AddEnvironmentVariables();
         });
     }
 
